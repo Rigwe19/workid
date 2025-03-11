@@ -10,7 +10,7 @@ export default function Dashboard() {
     const isMobile = useMediaQuery({ maxWidth: 768 });
     const { token } = useAuth()
 
-    if(!token) return <Navigate to="/onboarding/login" />
+    if(!token) return <Navigate to="/onboarding/get-started" />
 
     const menuItems = [
         { icon: <HiHome size={isOpen?24:28} />, title: "Home", href: "/" },
