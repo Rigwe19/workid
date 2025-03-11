@@ -27,6 +27,7 @@ const EmployerRegister = () => {
         username: '',
         phone: '',
         email: '',
+        location: '',
         password: '',
         confirm: ''
     });
@@ -34,6 +35,7 @@ const EmployerRegister = () => {
         full_name: '',
         username: '',
         phone: '',
+        location: '',
         email: '',
         password: '',
         confirm: '',
@@ -74,6 +76,7 @@ const EmployerRegister = () => {
                 <Input type="text" value={form.username} onChange={e=>handleChange('username', e.target.value)} error={errors.username} inputMode='text' autoComplete='username webauthn' placeholder="Username" />
                 <Input type="email" value={form.email} onChange={e=>handleChange('email', e.target.value)} error={errors.email} inputMode='email' autoComplete='email webauthn' placeholder="Company Email" />
                 <Input type="text" value={form.phone} onChange={e=>handleChange('phone', e.target.value)} error={errors.phone} inputMode='numeric' autoComplete='mobile tel webauthn' placeholder="Company Phone" />
+                <Input type="text" value={form.location} onChange={e=>handleChange('location', e.target.value)} error={errors.location} inputMode='text' autoComplete='address-level1 webauthn' placeholder="Company Location" />
                 <Input type="password" value={form.password} onChange={e=>handleChange('password', e.target.value)} error={errors.password} autoComplete='new-password' placeholder="Password" />
                 <Input type="password" value={form.confirm} onChange={e=>handleChange('confirm', e.target.value)} error={errors.confirm} placeholder="Confirm Password" />
                 <Button onClick={handleRegister}>Sign Up</Button>

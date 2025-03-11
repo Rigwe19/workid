@@ -28,6 +28,7 @@ const Register = () => {
         phone: '',
         email: '',
         password: '',
+        location: '',
         confirm: ''
     });
     const [form, setForm] = useState({
@@ -35,6 +36,7 @@ const Register = () => {
         username: '',
         phone: '',
         email: '',
+        location: '',
         password: '',
         confirm: '',
         role: 'employee'
@@ -53,16 +55,17 @@ const Register = () => {
     }
 
     return (
-        <div className="py-[50px] px-3 flex flex-col justify-center items-center gap-10 h-screen flex-1">
+        <div className="py-[50px] px-3 flex flex-col justify-center items-center gap-10 flex-1">
             <div className="w-2/3 flex flex-col gap-7 text-center">
-                <h2 className="text-primary font-bold text-2xl">Login Here</h2>
-                <p className="text-bold text-xl">Welcome back you’ve been missed!</p>
+                <h2 className="text-primary font-bold text-2xl">Employee Register Here</h2>
+                <p className="text-bold text-xl">Register and start using our service!</p>
             </div>
             <div className="w-full flex flex-col gap-6">
                 <Input type="text" value={form.full_name} onChange={e=>handleChange('full_name', e.target.value)} error={errors.full_name} inputMode='text' autoComplete='name webauthn' placeholder="Full Name" />
                 <Input type="text" value={form.username} onChange={e=>handleChange('username', e.target.value)} error={errors.username} inputMode='text' autoComplete='username webauthn' placeholder="Username" />
                 <Input type="email" value={form.email} onChange={e=>handleChange('email', e.target.value)} error={errors.email} inputMode='email' autoComplete='email webauthn' placeholder="Email" />
                 <Input type="text" value={form.phone} onChange={e=>handleChange('phone', e.target.value)} error={errors.phone} inputMode='numeric' autoComplete='mobile tel webauthn' placeholder="Phone" />
+                <Input type="text" value={form.location} onChange={e=>handleChange('location', e.target.value)} error={errors.location} inputMode='text' autoComplete='address-level1 webauthn' placeholder="Location" />
                 <Input type="password" value={form.password} onChange={e=>handleChange('password', e.target.value)} error={errors.password} autoComplete='new-password' placeholder="Password" />
                 <Input type="password" value={form.confirm} onChange={e=>handleChange('confirm', e.target.value)} error={errors.confirm} placeholder="Confirm Password" />
                 <Button onClick={handleRegister}>Sign Up</Button>
