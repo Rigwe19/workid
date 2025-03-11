@@ -8,7 +8,9 @@ import {
 } from "react-router";
 
 import type { Route } from "./+types/root";
-import "./app.css";
+import "./app.css";import 'react-toastify/dist/ReactToastify.css';
+import Loader from "./components/loader";
+import { useLoader } from "./stores/loaderStore";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -24,6 +26,7 @@ export const links: Route.LinksFunction = () => [
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const { isLoading } = useLoader();
   return (
     <html lang="en">
       <head>
@@ -35,6 +38,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <body>
         {children}
         <ScrollRestoration />
+        {isLoading && <Loader />}
         <Scripts />
       </body>
     </html>
