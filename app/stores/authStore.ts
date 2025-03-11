@@ -85,15 +85,15 @@ const useAuth = create<UseAuthStore>()(
       },
       register: async (details: any): Promise<void> => {
         try {
-          const response: AxiosResponse<AuthResponse> = await post(
+          const response: AxiosResponse = await post(
             `/auth/register`,
             details
           );
 
-          const userData = response.data.data;
+          // const userData = response.data.data;
 
-          set({ token: userData.token });
-          console.log("SETUP", { token: userData.token });
+          set({ token: response.data.token });
+          // console.log("SETUP", { token: userData.token });
         } catch (error: any) {
           if (error.status === 422) {
             const validationErrors: FormErrors = {};
