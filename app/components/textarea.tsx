@@ -1,4 +1,5 @@
 import { forwardRef, type TextareaHTMLAttributes } from 'react';
+import { BiError } from 'react-icons/bi';
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
     label?: string;
@@ -35,7 +36,10 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                     {...props}
                 />
                 {error && (
-                    <p className="mt-1 text-xs text-red-600">{error}</p>
+                    <span className='flex items-center text-red-500 gap-x-2 text-xs'>
+                        <BiError />
+                        <span>{error}</span>
+                    </span>
                 )}
             </div>
         );

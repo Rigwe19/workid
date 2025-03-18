@@ -1,4 +1,6 @@
-import { forwardRef, type InputHTMLAttributes } from 'react';
+import { forwardRef, useState, type InputHTMLAttributes } from 'react';
+import { BiError } from 'react-icons/bi';
+import { RiEyeCloseLine, RiEye2Line } from 'react-icons/ri';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     label?: string;
@@ -6,7 +8,9 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-    ({ label, error, className = '', ...props }, ref) => {
+    ({ label, error, type, className = '', ...props }, ref) => {
+        const [processType, setProcessType] = useState(type);
+        const [open, setOpen] = useState(false);
         return (
             <div className="w-full">
                 {label && (
@@ -14,9 +18,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                         {label}
                     </label>
                 )}
-                <input
-                    ref={ref}
-                    className={`
+                <div className="relative">
+                    <input
+                        ref={ref}
+                        type={processType}
+                        className={`
                         w-full
                         pl-4
                         py-4
@@ -32,10 +38,19 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
                         ${error ? 'border-red-500' : ''}
                         ${className}
                     `}
-                    {...props}
-                />
+                        {...props}
+                    />
+                    {type === "password" && <button onClick={()=>setProcessType(pv=>pv==='text'?'password':'text')} type="button" className="absolute right-4 top-4 text-primary">
+                        {processType==="text" && <RiEye2Line size={24} />}
+                        {processType==="password" && <RiEyeCloseLine size={24} />}
+                    </button>}
+                </div>
+
                 {error && (
-                    <p className="mt-1 text-xs text-red-600">{error}</p>
+                    <span className='flex items-center text-red-500 gap-x-2 text-xs'>
+                        <BiError />
+                        <span>{error}</span>
+                    </span>
                 )}
             </div>
         );

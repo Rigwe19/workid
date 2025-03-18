@@ -1,96 +1,123 @@
-import { motion } from "framer-motion";
-import { useState } from "react";
-import { HiCog, HiDocument, HiHome, HiUsers } from "react-icons/hi";
-import { useMediaQuery } from "react-responsive";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
+import { HiCog, HiHome, HiSearch, HiUsers } from "react-icons/hi";
+import { useMediaQuery, useClickAway } from "@uidotdev/usehooks";
 import { Navigate, NavLink, Outlet } from "react-router";
-import useAuth from '~/stores/authStore'
+import useAuth from '~/stores/authStore';
+import clsx from "clsx";
 
 export default function Dashboard() {
     const [isOpen, setIsOpen] = useState(false);
-    const isMobile = useMediaQuery({ maxWidth: 768 });
-    const { token } = useAuth()
+    const isMobile = useMediaQuery("only screen and (max-width : 768px)");
+    const { token, logout, user } = useAuth()
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const ref = useClickAway<any>(() => setDropdownOpen(false))
+    useEffect(() => {
+        console.log(isOpen, isMobile)
+    }, [isOpen, isMobile, dropdownOpen]);
 
-    if(!token) return <Navigate to="/onboarding/get-started" />
-
+    const adminNav = user?.role !== 'employee' ? [
+        { icon: <HiSearch size={isOpen ? 24 : 28} />, title: "Users", href: "/search", role: 'employer' }
+    ]: []
     const menuItems = [
-        { icon: <HiHome size={isOpen?24:28} />, title: "Home", href: "/" },
-        // { icon: <HiUsers size={isOpen?24:28} />, title: "Users", href: "/" },
+        { icon: <HiHome size={isOpen ? 24 : 28} />, title: "Home", href: "/" },
+        ...adminNav,
         // { icon: <HiDocument size={isOpen?24:28} />, title: "Documents", href: "/" },
-        { icon: <HiCog size={isOpen?24:28} />, title: "Settings", href: "/settings" },
+        { icon: <HiCog size={isOpen ? 24 : 28} />, title: "Settings", href: "/settings" },
     ];
 
-    const Sidebar = () => (
-        <motion.div
-            className="fixed left-0 top-0 h-screen bg-gray-800 text-white"
-            animate={{ width: isOpen ? "240px" : "70px" }}
-            onMouseEnter={() => setIsOpen(true)}
-            onMouseLeave={() => setIsOpen(false)}
-        >
-            <div className="p-4">
-                <motion.h2
-                    animate={{ opacity: isOpen ? 1 : 0 }}
-                    className="text-xl font-bold"
-                >
-                    Dashboard
-                </motion.h2>
-            </div>
-            <nav className="mt-8">
-                {menuItems.map((item, index) => (
-                    <NavLink
-                        viewTransition
-                        key={item.href}
-                        to={item.href}
-                        className={({ isActive, isPending }) =>
-                            isPending ? "flex items-center px-4 py-3 " : isActive ? "flex items-center px-4 py-3 bg-primary" : "flex items-center px-4 py-3 hover:bg-gray-700"
-                          }
+    const Sidebar = useMemo(() => {
+        const SidebarComponent = () => (
+            <motion.div
+                className="fixed left-0 top-0 h-screen bg-gray-800 text-white"
+                animate={{ width: isOpen ? "240px" : "70px" }}
+                onMouseEnter={() => setIsOpen(true)}
+                onMouseLeave={() => setIsOpen(false)}
+            >
+                <div className="p-4">
+                    <motion.h2
+                        animate={{ opacity: isOpen ? 1 : 0 }}
+                        className="text-xl font-bold"
                     >
-                        {item.icon}
-                        <motion.span
-                            animate={{ display: isOpen ? 'block' : 'none', marginLeft: isOpen ? "12px" : 0 }}
-                            className="whitespace-nowrap"
+                        Dashboard
+                    </motion.h2>
+                </div>
+                <nav className="mt-8 flex flex-col gap-2">
+                    {menuItems.map((item, index) => (
+                        <NavLink
+                            viewTransition
+                            key={item.href}
+                            to={item.href}
+                            className={({ isActive, isPending }) => {
+                                const baseClass = `flex items-center ${isOpen?'justify-start':'justify-center'} hover:bg-blue-700 px-4 py-3 relative`
+                                if(isPending) return baseClass
+                                if(isActive) return clsx('hover:bg-blue-400', baseClass, )
+                                return baseClass
+                            }
+                                // isPending ? "flex items-center justify-center px-4 py-3 relative" : isActive ? "flex items-center px-4 py-3 relative" : "flex items-center px-4 py-3"
+                            }
                         >
-                            {item.title}
-                        </motion.span>
-                    </NavLink>
-                ))}
-            </nav>
-        </motion.div>
-    );
+                            {({ isActive }) => (
+                                <>
+                                    {isActive && (
+                                        <motion.div
+                                            layoutId="activeBackground"
+                                            className="absolute inset-0 bg-primary -z-[1]"
+                                            transition={{ type: "spring", stiffness: 300, damping: 30, duration: 0.1 }}
+                                        />
+                                    )}
+                                    {item.icon}
+                                    <motion.span
+                                        animate={{ display: isOpen ? 'block' : 'none', marginLeft: isOpen ? "12px" : 0 }}
+                                        className="whitespace-nowrap"
+                                    >
+                                        {item.title}
+                                    </motion.span>
+                                </>
+                            )}
+                        </NavLink>
+                    ))}
+                </nav>
+            </motion.div>
+        );
+        return SidebarComponent;
+    }, [isOpen]);
 
     const BottomNav = () => (
         <div className="fixed bottom-0 left-0 right-0 bg-gray-800 text-white">
-            <div className="grid grid-cols-4 py-1 relative">
-            {/* Sliding background */}
-            {menuItems.map((item, index) => (
-                <NavLink
-                viewTransition key={item.href} to={item.href} 
-                className={({ isActive, isPending }) => {
-                    const baseClass = "text-center flex flex-col justify-center items-center py-2 relative z-10";
-                    if (isPending) return baseClass;
-                    if (isActive) {
-                    return `${baseClass} text-white`;
-                    }
-                    return baseClass;
-                }}
-                >
-                {({ isActive }) => (
-                    <>
-                    {isActive && (
-                        <motion.div
-                        layoutId="activeBackground"
-                        className="absolute inset-0 bg-primary rounded-full -z-[1]"
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        />
-                    )}
-                    {item.icon}
-                    <span className="text-white text-sm">{item.title}</span>
-                    </>
-                )}
-                </NavLink>
-            ))}
+            <div className="grid auto-cols-fr grid-flow-col py-1 relative">
+                {/* Sliding background */}
+                {menuItems.map((item, index) => (
+                    <NavLink
+                        viewTransition key={item.href} to={item.href}
+                        className={({ isActive, isPending }) => {
+                            const baseClass = "text-center flex flex-col justify-center items-center py-2 relative z-10";
+                            if (isPending) return baseClass;
+                            if (isActive) {
+                                return `${baseClass} text-white`;
+                            }
+                            return baseClass;
+                        }}
+                    >
+                        {({ isActive }) => (
+                            <>
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="activeBackground"
+                                        className="absolute inset-0 bg-primary rounded-full -z-[1]"
+                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                    />
+                                )}
+                                {item.icon}
+                                <span className="text-white text-sm">{item.title}</span>
+                            </>
+                        )}
+                    </NavLink>
+                ))}
             </div>
         </div>
     );
+    if (!token) return <Navigate to="/onboarding/get-started" />
 
     return (
         <div className="min-h-screen bg-gray-100">
@@ -108,7 +135,29 @@ export default function Dashboard() {
                         <button className="p-2 rounded-full hover:bg-gray-100">
                             <HiUsers size={20} />
                         </button>
-                        <div className="w-8 h-8 bg-gray-300 rounded-full" />
+                        <div ref={ref} className="relative">
+                            <button
+                                onClick={() => setDropdownOpen(prev => !prev)}
+                                className="w-8 h-8 bg-gray-300 rounded-full"
+                            />
+                            <AnimatePresence>
+                                {dropdownOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1"
+                                    >
+                                        <button
+                                            onClick={logout}
+                                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
+                                        >
+                                            Logout
+                                        </button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     </div>
                 </div>
             </motion.header>

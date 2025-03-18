@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import useAuth from "~/stores/authStore";
+import useAuth from "../stores/authStore";
 
 export function Welcome() {
   const { fetchCurrentUser, user } = useAuth();

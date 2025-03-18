@@ -5,12 +5,29 @@ import { Modal } from "~/components/modal";
 import { get } from "~/libs/axios";
 import { profileForm, workForm } from "~/libs/form";
 import useAuth from "~/stores/authStore";
+import Case from 'case'
+import type { Route } from "./+types/settings";
 // type Props = {
 //     onSuccess: (success:string, value:string) => void
 // }
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "Frontlett - Settings" },
+    { name: "description", content: "Customize your account" },
+  ];
+}
+
 export default function Settings() {
-    const { user } = useAuth()
-    const [works, setWorks] = useState([]);
+    const { user, updateUser } = useAuth()
+    const [url, setUrl] = useState('');
+    const [works, setWorks] = useState<{
+        id: number;
+        position: string;
+        location: string;
+        start: string;
+        end: string;
+        company: string;
+    }[]>([]);
     useEffect(() => {
         getQuery()
     }, []);
@@ -20,7 +37,7 @@ export default function Settings() {
             const response: AxiosResponse = await get('/dashboard/settings')
             console.log(response.data)
             const { success, works } = response.data
-            if(success){
+            if (success) {
                 setWorks(works);
             }
         } catch (error) {
@@ -33,16 +50,20 @@ export default function Settings() {
     const [formType, setFormType] = useState<'profile' | 'work'>('profile');
     const [form, setForm] = useState<any>(profileForm);
     const [header, setHeader] = useState('');
-    const handleOpen = (param: 'profile' | 'work') => {
+    const [defaultValues, setDefaultValues] = useState<any>({})
+    const handleOpen = (param: 'profile' | 'work', defaultValues?: any) => {
         setFormType(param);
+        setDefaultValues(defaultValues)
         switch (param) {
             case 'profile':
                 setForm(profileForm);
+                setUrl("/dashboard/profile")
                 setHeader('Edit profile details');
                 break;
             case 'work':
                 setForm(workForm);
-                setHeader('Become a Mentor');
+                setUrl("/dashboard/settings")
+                setHeader('Add your work experience');
                 break;
             // case 'facilitator':
             //     form = facilitatorForm;
@@ -64,9 +85,18 @@ export default function Settings() {
     const handleClose = () => {
         setOpenModal(false);
     }
-    const handleFinish = () => {
-        setOpen(true)
+    const handleFinish = (response: any) => {
+        setOpen(false)
         setOpenModal(false);
+        if (formType === 'work') {
+            if (response.success) {
+                setWorks(response.works)
+            }
+        } else if (formType === 'profile') {
+            if (response.success) {
+                updateUser(response.user)
+            }
+        }
     }
     return (
         <div className="container mx-auto max-w-3xl md:py-16 py-4 px-4">
@@ -77,7 +107,7 @@ export default function Settings() {
                 <div className="bg-white rounded-lg shadow p-6">
                     <div className="flex justify-between items-center mb-3">
                         <h2 className="text-xl font-semibold">Profile Information</h2>
-                        <button onClick={() => handleOpen('profile')} className="text-blue-600 hover:text-blue-800 cursor-pointer">Edit</button>
+                        <button onClick={() => handleOpen('profile', user)} className="text-blue-600 hover:text-blue-800 cursor-pointer">Edit</button>
                     </div>
                     <hr className="mb-4" />
                     <div className="space-y-3">
@@ -85,11 +115,12 @@ export default function Settings() {
                         <p><span className="font-medium">Email:</span> {user?.email}</p>
                         <p><span className="font-medium">Location:</span> {user?.location}</p>
                         <p><span className="font-medium">Phone:</span> {user?.phone}</p>
+                        <p><span className="font-medium">LinkedIn Profile:</span> <a href={user?.linkedIn} target="_blank" className="text-primary underline">{user?.linkedIn}</a></p>
                     </div>
                 </div>
 
                 {/* Job Preferences Section */}
-                <div className="bg-white rounded-lg shadow p-6">
+                {/* <div className="bg-white rounded-lg shadow p-6">
                     <div className="flex justify-between items-center mb-3">
                         <h2 className="text-xl font-semibold">Job Preferences</h2>
                         <button className="text-blue-600 hover:text-blue-800 cursor-pointer">Edit</button>
@@ -101,34 +132,29 @@ export default function Settings() {
                         <p><span className="font-medium">Preferred Location:</span> Remote</p>
                         <p><span className="font-medium">Salary Range:</span> $120,000 - $150,000</p>
                     </div>
-                </div>
+                </div> */}
 
                 {/* Work Experience Section */}
-                <div className="bg-white rounded-lg shadow p-6">
+                {user?.role === 'employee' && <div className="bg-white rounded-lg shadow p-6">
                     <div className="flex justify-between items-center mb-3">
                         <h2 className="text-xl font-semibold">Work Experience</h2>
                         <button onClick={() => handleOpen('work')} className="text-blue-600 hover:text-blue-800 cursor-pointer">+ Add Experience</button>
                     </div>
                     <hr className="mb-4" />
                     <div className="space-y-6">
-                        <div className="flex justify-between items-start">
+                        <p className="text-gray-500">No Work Experience Added</p>
+                        {works.map(work => <div key={work.id} className="flex justify-between items-start">
                             <div>
-                                <h3 className="font-medium">Senior Developer at Tech Corp</h3>
-                                <p className="text-gray-600">2020 - Present</p>
-                                <p className="mt-2">Led development team of 5 engineers...</p>
+                                <h3 className="font-medium">{work.position}</h3>
+                                <p className="text-gray-600">{work.start} - {work.end}</p>
+                                <p className="mt-2">{work.company} at {work.location}</p>
                             </div>
-                            <button className="text-blue-600 hover:text-blue-800 cursor-pointer">Edit</button>
-                        </div>
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <h3 className="font-medium">Software Engineer at StartUp Inc</h3>
-                                <p className="text-gray-600">2018 - 2020</p>
-                                <p className="mt-2">Developed and maintained web applications...</p>
-                            </div>
-                            <button className="text-blue-600 hover:text-blue-800 cursor-pointer">Edit</button>
-                        </div>
+                            <button onClick={() => handleOpen('work', work)} className="text-blue-600 hover:text-blue-800 cursor-pointer">Edit</button>
+
+                            <hr className="mb-2" />
+                        </div>)}
                     </div>
-                </div>
+                </div>}
 
                 {/* Notification Settings */}
                 <div className="bg-white rounded-lg shadow p-6">
@@ -166,74 +192,14 @@ export default function Settings() {
                     </div>
                     <hr className="mb-4" />
                     <div className="space-y-3">
-                        <p><span className="font-medium">Account Type:</span> Professional</p>
-                        <p><span className="font-medium">Member Since:</span> January 2020</p>
+                        <p><span className="font-medium">Account Type:</span> {Case.title(user?.role ?? '')}</p>
+                        <p><span className="font-medium">Member Since:</span> {new Date(user?.createdAt??'').toString()} January 2020</p>
                         <button className="text-red-600 hover:text-red-800 cursor-pointer">Delete Account</button>
                     </div>
                 </div>
             </div>
-            {/* {isEditing && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-2xl font-semibold">{formConfig[activeForm].title}</h2>
-                            <button onClick={() => setIsEditing(false)} className="text-gray-500 hover:text-gray-700">
-                                <XIcon className="h-6 w-6" />
-                            </button>
-                        </div>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            {formConfig[activeForm].fields.map((field) => (
-                                <div key={field.name} className="space-y-2">
-                                    <label htmlFor={field.name} className="block font-medium">
-                                        {field.label}
-                                    </label>
-                                    {field.type === 'select' ? (
-                                        <select
-                                            id={field.name}
-                                            name={field.name}
-                                            value={formData[field.name] || ''}
-                                            onChange={handleChange}
-                                            className="w-full border rounded-md p-2"
-                                        >
-                                            {field.options?.map(option => (
-                                                <option key={option.value} value={option.value}>
-                                                    {option.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    ) : (
-                                        <input
-                                            type={field.type}
-                                            id={field.name}
-                                            name={field.name}
-                                            value={formData[field.name] || ''}
-                                            onChange={handleChange}
-                                            className="w-full border rounded-md p-2"
-                                        />
-                                    )}
-                                </div>
-                            ))}
-                            <div className="flex justify-end space-x-3 pt-4">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsEditing(false)}
-                                    className="px-4 py-2 border rounded-md hover:bg-gray-50"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                                >
-                                    Save Changes
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )} */}
             <Modal isOpen={openModal} onClose={handleClose} title={formType}>
-                <Form form={form} header={header} onFinish={handleFinish} form_type={formType}></Form>
+                <Form url={url} form={form} defaultValues={defaultValues} header={header} onFinish={handleFinish} form_type={formType}></Form>
             </Modal>
         </div>
     );

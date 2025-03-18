@@ -1,9 +1,9 @@
 import { create } from "zustand";
 import { type AxiosResponse } from "axios";
-import { get, post } from "../libs/axios";
+import { deleteRequest, get, post } from "../libs/axios";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-type user = {
+type User = {
   workId: string;
   email: string;
   id: string;
@@ -11,29 +11,26 @@ type user = {
   username: string;
   phone: string;
   location: string;
+  role: "employee" | "employer" | "admin";
+  linkedIn: string;
+  createdAt: string;
 };
 
 interface UseAuthStore {
-  user: user | null;
+  user: User | null;
   token: string | null;
   signIn: (form: { username: string; password: string }) => Promise<void>;
   fetchCurrentUser: () => Promise<void>;
-  register: (details: any) => Promise<void>;
+  signUp: (details: any) => Promise<void>;
+  updateUser: (user: any) => void;
+  logout: () => Promise<void>
 }
 interface AuthResponse {
   code: number;
   error: boolean;
   message: string;
   data: {
-    user: {
-      workId: string;
-      email: string;
-      id: string;
-      name: string;
-      fullName: string;
-      phone: string;
-      location: string;
-    };
+    user: User;
     token: string;
   };
   errors?: [];
@@ -66,7 +63,18 @@ const useAuth = create<UseAuthStore>()(
           console.log(response.data);
           set({ token: response.data.token });
           console.log("SETUP", { user: response.data.user });
-        } catch (error: unknown) {
+        } catch (error: any) {
+          if (error.status === 422) {
+            const validationErrors: FormErrors = {};
+            error.validationErrors?.forEach((err: ValidationError) => {
+              validationErrors[err.field] = err.message;
+            });
+            return Promise.reject(validationErrors);
+            // console.log(validationErrors)
+            // setErrors(validationErrors);
+          }else if (error.status === 419) {
+            return Promise.reject({ username: "Invalid username or password" });
+          }
           console.log(error);
           // Handle authentication errors
         }
@@ -83,12 +91,13 @@ const useAuth = create<UseAuthStore>()(
           // Handle authentication errors
         }
       },
-      register: async (details: any): Promise<void> => {
+      updateUser: (user: any) =>
+        set((state: { user: any }) => ({
+          user: { ...state.user, ...user },
+        })),
+      signUp: async (details: any): Promise<void> => {
         try {
-          const response: AxiosResponse = await post(
-            `/auth/register`,
-            details
-          );
+          const response: AxiosResponse = await post(`/auth/register`, details);
 
           // const userData = response.data.data;
 
@@ -103,7 +112,19 @@ const useAuth = create<UseAuthStore>()(
             return Promise.reject(validationErrors);
             // console.log(validationErrors)
             // setErrors(validationErrors);
+          } else if (error.status === 419) {
+            return Promise.reject({ username: "Invalid username or password" });
           }
+          // Handle authentication errors
+        }
+      },
+      logout: async () => {
+        try {
+          const response: AxiosResponse = await deleteRequest(`/auth/logout`);
+
+          set({ token: null });
+          // console.log("SETUP", { token: userData.token });
+        } catch (error: any) {
           // Handle authentication errors
         }
       },

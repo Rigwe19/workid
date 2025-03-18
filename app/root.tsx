@@ -38,7 +38,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <body>
         {children}
         <ScrollRestoration />
-        {isLoading && <Loader />}
+        <Loader show={isLoading} />
         <Scripts />
       </body>
     </html>

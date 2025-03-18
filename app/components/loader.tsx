@@ -1,25 +1,32 @@
 import { motion } from 'framer-motion';
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-// import loadingAnimation from './loader.json'; // You'll need to add your Lottie JSON file
+import { useEffect } from 'react';
+import { useLocation } from 'react-router';
 
 interface LoaderProps {
-    size?: number;
+    show: boolean;
 }
 
-const Loader = ({ size = 400 }: LoaderProps) => {
+const Loader = ({ show }: LoaderProps) => {
+    const location = useLocation();
+    const isOnboarding = location.pathname.includes('onboarding');
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            if (show) {
+                document.body.style.overflow = 'hidden'
+            } else {
+                document.body.style.overflow = 'unset'
+            }
+        }
+    }, [show]);
     return (
         <motion.div
-            initial={{ opacity: 0, scale: 0.5 }}
+            initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="flex items-center justify-center absolute inset-0 bg-black/50"
+            transition={{ duration: 0.05 }}
+            className={`items-center justify-center absolute z-[9999] inset-0 ${isOnboarding ? 'pointer-events-auto' : 'pointer-events-none'} bg-black/50 ${show ? 'flex' : 'hidden'}`}
         >
-            <DotLottieReact
-                loop
-                src='/loader.lottie'
-                autoplay
-                style={{ width: size, height: size }}
-            />
+            <span className="loader"></span>
         </motion.div>
     );
 };

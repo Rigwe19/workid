@@ -1,13 +1,21 @@
-import { forwardRef, type SelectHTMLAttributes } from 'react';
+import { forwardRef, useEffect, useState, type SelectHTMLAttributes } from 'react';
+import { BiError } from 'react-icons/bi';
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
     label?: string;
     error?: string;
-    options?: string[] | number[];
+    options?: { label: string | number, value: string | number }[];
+    disable_from?: string;
 }
 
-const Textarea = forwardRef<HTMLSelectElement, SelectProps>(
-    ({ label, error, options, className = '', ...props }, ref) => {
+const Select = forwardRef<HTMLSelectElement, SelectProps>(
+    ({ label, error, options, className = '', disable_from, ...props }, ref) => {
+        const [filter, setFilter] = useState(options);
+        useEffect(() => {
+            if (disable_from) {
+                setFilter(options?.filter(option => option.value >= disable_from));
+            }
+        }, [disable_from]);
         return (
             <div className="w-full">
                 {label && (
@@ -35,17 +43,20 @@ const Textarea = forwardRef<HTMLSelectElement, SelectProps>(
                     `}
                     {...props}
                 >
-                    <option value="Select">Select</option>
-                    {options?.map(option => <option key={option} value={option}>{option}</option>)}
+                    <option value="">Select</option>
+                    {filter?.map(option => <option key={option.label} value={option.value}>{option.label}</option>)}
                 </select>
                 {error && (
-                    <p className="mt-1 text-xs text-red-600">{error}</p>
+                    <span className='flex items-center text-red-500 gap-x-2 text-xs'>
+                        <BiError />
+                        <span>{error}</span>
+                    </span>
                 )}
             </div>
         );
     }
 );
 
-Textarea.displayName = 'TextArea';
+Select.displayName = 'Select';
 
-export default Textarea;
+export default Select;

@@ -1,5 +1,5 @@
 const profileForm = {
-    name: {
+    fullName: {
         type: "input",
         label: "Full Name",
         placeholder: "John Doe",
@@ -20,7 +20,7 @@ const profileForm = {
         required: true,
         inputMode: "tel",
     },
-    linkedin: {
+    linkedIn: {
         type: "input",
         label: "LinkedIn Profile (optional)",
         placeholder: "https://linkedin.com...",
@@ -48,9 +48,26 @@ const workForm = {
         type: "year",
         label: "Year",
         children: {
-            start: [...Array(50).keys()].map((i) => new Date().getFullYear() - i),
-            end: ['Present', ...[...Array(50).keys()].map((i) => new Date().getFullYear() - i)],
+            start: [...Array(50).keys()].map((i) => ({
+                label: new Date().getFullYear() - i,
+                value: new Date().getFullYear() - i
+            })),
+            end: [
+                {
+                    label: 'Present',
+                    value: -1,
+                }, ...[...Array(50).keys()].map((i) => ({
+                    label: new Date().getFullYear() - i,
+                    value: new Date().getFullYear() - i
+                }))],
         }
+    },
+    company: {
+        type: "input",
+        label: "Company",
+        placeholder: "Google",
+        required: true,
+        inputMode: "text",
     },
     location: {
         type: "input",

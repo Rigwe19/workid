@@ -21,7 +21,7 @@ interface FormErrors {
     [key: string]: string | undefined;
 }
 const EmployerRegister = () => {
-    const { token, register } = useAuth();
+    const { token, signUp } = useAuth();
     const [errors, setErrors] = useState<FormErrors>({
         full_name: '',
         username: '',
@@ -47,7 +47,7 @@ const EmployerRegister = () => {
 
     const handleRegister = async () => {
         try {
-            await register(form).then(res => {
+            await signUp(form).then(res => {
                 console.log(res)
             })
         } catch (error: any) {
